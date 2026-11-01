@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "PrismEngine: Hero",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/PrismEngine",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "MIMode": "lldb",
+            "preLaunchTask": "Desktop: Build",
+            "externalConsole": false
+        },
+        {
+            "name": "PrismEngine: F9 Camera Demo",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/PrismEngine",
+            "args": ["--camera-demo", "--msaa", "2"],
+            "cwd": "${workspaceFolder}",
+            "MIMode": "lldb",
+            "preLaunchTask": "Desktop: Build",
+            "externalConsole": false
+        }
+    ]
+}

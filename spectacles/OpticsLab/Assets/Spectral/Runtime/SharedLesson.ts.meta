@@ -1,0 +1,44 @@
+- !<AssetImportMetadata/42b59d59-66cd-5f5f-9070-2385b241468e>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 9961fc30-ad0f-5edb-9e53-7bcf48d70845
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 9961fc30-ad0f-5edb-9e53-7bcf48d70845
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> 3dc3fc60-a5ea-4f29-8b38-ebdb2449f4c5
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/3dc3fc60-a5ea-4f29-8b38-ebdb2449f4c5>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  ComponentUid: 46be9c01-df72-4b0e-99de-9265c2a3a3ce
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    lab: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - lab: !<MappingBased.AssignableType> 00000000-0000-0000-0000-000000000000
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - // @input AssignableType lab

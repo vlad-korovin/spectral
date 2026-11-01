@@ -1,0 +1,28 @@
+# Generated/local-only state
+.DS_Store
+._*
+build/
+.build*/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+node_modules/
+.test-build/
+spectacles/OpticsLab/Cache/
+spectacles/OpticsLab/.cache/
+spectacles/OpticsLab/Workspaces/
+spectacles/OpticsLab/PluginsUserPreferences/
+*.bak*
+*.log
+# Local credentials and signing assets
+.env
+.env.*
+!.env.example
+*.p12
+*.pfx
+*.mobileprovision
+*.pem
+*.key
+*.local.xcconfig
+# Local review artifacts
+publication-review/

@@ -1,0 +1,6 @@
+node_modules/
+.test-build/
+OpticsLab/Cache/
+OpticsLab/.cache/
+OpticsLab/Workspaces/
+.DS_Store

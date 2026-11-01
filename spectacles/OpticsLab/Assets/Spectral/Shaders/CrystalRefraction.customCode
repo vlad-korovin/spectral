@@ -1,0 +1,213 @@
+// CrystalRefraction — physical dispersion through the OpticsLab crystal.
+// Port of the iPhone Optics.metal opticalSample to a Lens Studio Code Node.
+// 31 wavelengths (420–680 nm), Snell's law per wavelength, Sellmeier n(λ)
+// per material, Fresnel + TIR, Gaussian display-primary weights — the same
+// model as Assets/Spectral/Core/Materials.ts samples() (which drives the
+// ray visualization), so shader and teaching rays always agree.
+//
+// Editor wiring (Material Editor):
+//   - Texture 2D Object Parameter "cameraTex"  -> Device Camera Texture asset
+//   - Vec4 Parameters "sellmeierB"/"sellmeierC"-> set by SpectralLab.ts at runtime
+//   - Vec3 Parameter "lightPeak"               -> x: 0 = white or peak nm;
+//                                                 y: iOS-matched idle cinema blend
+//   - Code Node "Result" output                -> Shader node Color input
+// Material: BlendMode Normal, DepthWrite off, DepthTest on.
+
+input_texture_2d cameraTex;
+input_vec4 sellmeierB;
+input_vec4 sellmeierC;
+input_vec3 lightPeak;
+output_vec4 Result;
+
+// ---- 18 half-spaces of the crystal (metres), mirrors Optics.ts CRYSTAL ----
+vec4 crystalPlane(int i) {
+    if (i == 16) return vec4(0.0, -1.0, 0.0, 0.0);
+    if (i == 17) return vec4(0.0, 1.0, 0.0, 0.145);
+    float angle = float(i % 8) * 0.785398163; // PI/4
+    float cs = cos(angle);
+    float sn = sin(angle);
+    if (i < 8) return vec4(cs * 0.714142843, 0.7, sn * 0.714142843, 0.102772856);
+    return vec4(cs * 0.6, -0.8, sn * 0.6, 0.01);
+}
+
+// Interval over the 18 half-spaces: x=enter t, y=leave t, z=hit flag.
+vec4 intervalData;
+vec3 intervalEntryNormal;
+vec3 intervalExitNormal;
+
+void intersectGlass(vec3 o, vec3 d) {
+    intervalData = vec4(-1e10, 1e10, 1.0, 0.0);
+    intervalEntryNormal = vec3(0.0);
+    intervalExitNormal = vec3(0.0);
+    for (int i = 0; i < 18; i++) {
+        vec4 p = crystalPlane(i);
+        float den = dot(p.xyz, d);
+        float dist = p.w - dot(p.xyz, o);
+        if (abs(den) >= 1e-7) {
+            float t = dist / den;
+            if (den < 0.0 && t > intervalData.x) { intervalData.x = t; intervalEntryNormal = p.xyz; }
+            if (den > 0.0 && t < intervalData.y) { intervalData.y = t; intervalExitNormal = p.xyz; }
+        } else if (dist < 0.0) {
+            intervalData.z = 0.0;
+        }
+    }
+    if (intervalData.y <= max(intervalData.x, 0.0)) intervalData.z = 0.0;
+}
+
+float fresnel(float cosine, float ni, float nt) {
+    float c = clamp(cosine, 0.0, 1.0);
+    float s2 = (ni / nt) * (ni / nt) * (1.0 - c * c);
+    if (s2 >= 1.0) return 1.0; // total internal reflection
+    float ct = sqrt(1.0 - s2);
+    float rs = (ni * c - nt * ct) / max(ni * c + nt * ct, 1e-6);
+    float rp = (nt * c - ni * ct) / max(nt * c + ni * ct, 1e-6);
+    return 0.5 * (rs * rs + rp * rp);
+}
+
+vec3 refractDir(vec3 d, vec3 n, float eta) {
+    float c = clamp(-dot(d, n), 0.0, 1.0);
+    float k = 1.0 - eta * eta * (1.0 - c * c);
+    if (k < 0.0) return vec3(0.0); // TIR
+    return normalize(d * eta + n * (eta * c - sqrt(k)));
+}
+
+// Trace state
+vec3 pathOrigin;
+vec3 pathDirection;
+float pathThroughput;
+float pathLength;
+float pathEscaped;
+
+void traceGlass(vec3 origin, vec3 direction, float index) {
+    pathThroughput = 0.0;
+    pathEscaped = 0.0;
+    pathLength = 0.0;
+    pathOrigin = origin;
+    pathDirection = direction;
+    intersectGlass(origin, direction);
+    if (intervalData.z < 0.5 || intervalData.x < 0.0) return;
+    pathThroughput = 1.0 - fresnel(-dot(direction, intervalEntryNormal), 1.0, index);
+    vec3 t = refractDir(direction, intervalEntryNormal, 1.0 / index);
+    if (dot(t, t) < 1e-8) { pathThroughput = 0.0; return; }
+    pathDirection = t;
+    pathOrigin = origin + direction * intervalData.x + pathDirection * 0.00001;
+    for (int bounce = 0; bounce < 5; bounce++) {
+        intersectGlass(pathOrigin, pathDirection);
+        if (intervalData.z < 0.5 || intervalData.y < 0.0) break;
+        pathLength += intervalData.y;
+        pathOrigin += pathDirection * intervalData.y;
+        vec3 outDir = refractDir(pathDirection, -intervalExitNormal, index);
+        if (dot(outDir, outDir) > 1e-8) {
+            pathThroughput *= 1.0 - fresnel(dot(pathDirection, intervalExitNormal), index, 1.0);
+            pathDirection = outDir;
+            pathOrigin += pathDirection * 0.00001;
+            pathEscaped = 1.0;
+            break;
+        }
+        pathDirection = reflect(pathDirection, intervalExitNormal);
+        pathOrigin += pathDirection * 0.00001;
+    }
+    if (pathEscaped < 0.5) pathThroughput = 0.0; // Bounded work; never invent transmission for trapped paths.
+}
+
+// Sellmeier n(λ): n² = 1 + Σ bᵢ·l/(l−cᵢ), l = (λ/1000)² — same as Materials.ts ior().
+float refractiveIndex(float nm) {
+    float l = (nm * 0.001) * (nm * 0.001);
+    float n2 = 1.0;
+    n2 += sellmeierB.x * l / (l - sellmeierC.x);
+    n2 += sellmeierB.y * l / (l - sellmeierC.y);
+    n2 += sellmeierB.z * l / (l - sellmeierC.z);
+    n2 += sellmeierB.w * l / (l - sellmeierC.w);
+    return sqrt(n2);
+}
+
+// Light spectrum: 1 for white (equal energy), Gaussian around the peak for coloured lights.
+float lightSpectrum(float nm) {
+    if (lightPeak.x < 1.0) return 1.0;
+    float x = (nm - lightPeak.x) / 9.0;
+    return exp(-0.5 * x * x);
+}
+
+vec2 projectToScreen(vec3 worldPoint) {
+    // worldPoint is already in world space. ProjectionViewWorld would apply
+    // the crystal transform a second time, which made refraction slide away
+    // from the mesh and become view dependent.
+    vec4 clip = system.getMatrixProjectionView() * vec4(worldPoint, 1.0);
+    if (clip.w <= 0.0) return vec2(-10.0);
+    return (clip.xy / clip.w) * 0.5 + 0.5;
+}
+
+vec3 sampleCamera(vec2 uv) {
+    if (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) return vec3(0.0);
+    return cameraTex.sample(uv).rgb;
+}
+
+// The same broad warm key/cool rim treatment used by the iOS idle flight.
+// It shapes virtual crystal highlights; it is not a claim of measured room light.
+vec3 cinematicReflection(vec3 direction, vec3 axis) {
+    vec3 side = normalize(cross(abs(axis.y) > 0.95 ? vec3(1.0, 0.0, 0.0) : vec3(0.0, 1.0, 0.0), axis));
+    vec3 rim = normalize(axis - side * 1.8 + vec3(0.0, 0.35, 0.0));
+    float keyLobe = exp(18.0 * (clamp(dot(direction, axis), -1.0, 1.0) - 1.0));
+    float rimLobe = exp(28.0 * (clamp(dot(direction, rim), -1.0, 1.0) - 1.0));
+    return vec3(1.0, 0.77, 0.48) * (7.0 * keyLobe) + vec3(0.38, 0.7, 1.0) * (5.0 * rimLobe);
+}
+
+void main() {
+    // Build the ray from the actual rasterized surface point. Reconstructing
+    // it from full-screen UV is ambiguous in the stereo Spectacles cameras
+    // and caused the crystal to disappear at ordinary gaze angles.
+    vec3 cameraWorld = system.getCameraPosition();
+    vec3 worldDir = normalize(system.getSurfacePositionWorldSpace() - cameraWorld);
+    mat4 invWorld = system.getMatrixWorldInverse();
+    vec3 camObj = (invWorld * vec4(cameraWorld, 1.0)).xyz * 0.01; // cm -> m
+    vec3 dirObj = normalize((invWorld * vec4(worldDir, 0.0)).xyz);
+
+    intersectGlass(camObj, dirObj);
+    // NOTE: no early `return` here. A `return` in the code-node main, combined
+    // with the graph's inlined boilerplate + all helper functions, triggers a
+    // SPIRV-Cross bug ("Cannot start a block before ending the current block").
+    // Restructured as if/else — identical behavior, compiles cleanly.
+    if (intervalData.z < 0.5 || intervalData.x < 0.0) {
+        Result = vec4(0.0, 0.0, 0.0, 0.0);
+    } else {
+
+    // Entry point + world-space reflection sample (mirror of the far background).
+    vec3 entryWorld = (system.getMatrixWorld() * vec4((camObj + intervalData.x * dirObj) * 100.0, 1.0)).xyz;
+    vec3 normalWorld = normalize((system.getMatrixWorld() * vec4(intervalEntryNormal, 0.0)).xyz);
+    vec3 reflected = reflect(worldDir, normalWorld);
+    vec3 reflSample = sampleCamera(projectToScreen(entryWorld + reflected * 220.0));
+    vec3 cinematicAxis = normalize(-worldDir + vec3(0.0, 0.6, 0.0));
+    reflSample += cinematicReflection(reflected, cinematicAxis) * lightPeak.y;
+
+    // 31 spectral samples, 420–680 nm. Weights match Materials.ts samples():
+    // Gaussian display-primary response, trapezoid endpoints (q=0.5), per-channel
+    // normalization (precomputed sums: R 10.863307, G 9.254640, B 6.631524).
+    vec3 norm = vec3(10.863307, 9.254640, 6.631524);
+    vec3 sum = vec3(0.0);
+    for (int i = 0; i < 31; i++) {
+        float nm = 420.0 + 260.0 * float(i) / 30.0;
+        float q = (i == 0 || i == 30) ? 0.5 : 1.0;
+        float xr = (nm - 610.0) / 39.0;
+        float xg = (nm - 545.0) / 32.0;
+        float xb = (nm - 455.0) / 25.0;
+        vec3 w = vec3(exp(-0.5 * xr * xr) * q / norm.x,
+                      exp(-0.5 * xg * xg) * q / norm.y,
+                      exp(-0.5 * xb * xb) * q / norm.z);
+
+        float index = refractiveIndex(nm);
+        traceGlass(camObj, dirObj, index);
+        vec3 color = vec3(0.0);
+        if (pathEscaped > 0.5) {
+            vec3 exitWorld = (system.getMatrixWorld() * vec4(pathOrigin * 100.0, 1.0)).xyz;
+            vec3 outgoing = normalize((system.getMatrixWorld() * vec4(pathDirection, 0.0)).xyz);
+            // Sample the far background along the outgoing ray (vanishing point):
+            // this is what makes the prism displacement visible. The old 8 cm
+            // offset showed only ~7% of the true displacement.
+            color = sampleCamera(projectToScreen(exitWorld + outgoing * 220.0)) * pathThroughput * exp(-pathLength * 0.35);
+        }
+        color += reflSample * fresnel(-dot(dirObj, intervalEntryNormal), 1.0, index);
+        sum += color * w * lightSpectrum(nm);
+    }
+    Result = vec4(clamp(sum, 0.0, 1.0), 0.95);
+    }
+}

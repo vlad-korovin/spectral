@@ -1,0 +1,5 @@
+{
+ "name":"spectral-optics-lab","private":true,"version":"0.1.0",
+ "scripts":{"test":"tsc -p tsconfig.core.json && node --test tests/*.test.cjs","bench":"tsc -p tsconfig.core.json && node tests/benchmark.cjs"},
+ "devDependencies":{"typescript":"5.6.3"}
+}

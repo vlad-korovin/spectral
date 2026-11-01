@@ -1,0 +1,207 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "iPhone: Test Studio Interaction + Capture",
+            "type": "process",
+            "command": "python3",
+            "args": [
+                "${workspaceFolder}/ios/PrismCamera/tests/studio_tests.py"
+            ],
+            "problemMatcher": [],
+            "group": "test"
+        },
+        {
+            "label": "iPhone: Test Capture Calibration",
+            "type": "process",
+            "command": "python3",
+            "args": [
+                "${workspaceFolder}/ios/PrismCamera/tests/capture_tests.py"
+            ],
+            "problemMatcher": [],
+            "group": "test"
+        },
+        {
+            "label": "iPhone: Test Optical Transport",
+            "type": "process",
+            "command": "python3",
+            "args": [
+                "${workspaceFolder}/ios/PrismCamera/tests/transport_tests.py"
+            ],
+            "problemMatcher": [],
+            "group": "test"
+        },
+        {
+            "label": "Desktop: Configure Release",
+            "type": "process",
+            "command": "cmake",
+            "args": [
+                "-S",
+                "${workspaceFolder}",
+                "-B",
+                "${workspaceFolder}/build",
+                "-DCMAKE_BUILD_TYPE=Release"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Desktop: Build",
+            "type": "process",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}/build",
+                "-j",
+                "4"
+            ],
+            "dependsOn": "Desktop: Configure Release",
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Desktop: Test",
+            "type": "process",
+            "command": "ctest",
+            "args": [
+                "--test-dir",
+                "${workspaceFolder}/build",
+                "--output-on-failure"
+            ],
+            "dependsOn": "Desktop: Build",
+            "problemMatcher": [],
+            "group": "test"
+        },
+        {
+            "label": "Desktop: Run",
+            "type": "process",
+            "command": "${workspaceFolder}/build/PrismEngine",
+            "dependsOn": "Desktop: Build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "Desktop: Run Fast Camera",
+            "type": "process",
+            "command": "${workspaceFolder}/build/PrismEngine",
+            "args": [
+                "--camera-demo",
+                "--msaa",
+                "1",
+                "--no-taa"
+            ],
+            "dependsOn": "Desktop: Build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "iPhone: Diagnose Setup",
+            "type": "process",
+            "command": "${workspaceFolder}/ios/PrismCamera/check-setup.sh",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "iPhone: Build Simulator (No Signing)",
+            "type": "process",
+            "command": "xcodebuild",
+            "args": [
+                "-project",
+                "${workspaceFolder}/ios/PrismCamera/PrismCamera.xcodeproj",
+                "-scheme",
+                "PrismCamera",
+                "-configuration",
+                "Debug",
+                "-sdk",
+                "iphonesimulator",
+                "-derivedDataPath",
+                "${workspaceFolder}/ios/PrismCamera/.build-simulator",
+                "CODE_SIGNING_ALLOWED=NO",
+                "build"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "iPhone: List Devices",
+            "type": "process",
+            "command": "xcrun",
+            "args": [
+                "devicectl",
+                "list",
+                "devices"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "iPhone: Build + Install + Launch",
+            "type": "process",
+            "command": "${workspaceFolder}/ios/PrismCamera/run-on-device.sh",
+            "args": [
+                "${input:iphoneName}"
+            ],
+            "options": {
+                "env": {
+                    "DEVELOPMENT_TEAM": "${input:developmentTeam}",
+                    "PRODUCT_BUNDLE_IDENTIFIER": "${input:bundleIdentifier}"
+                }
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "focus": true
+            }
+        },
+        {
+            "label": "Verify: Desktop + iPhone Compile",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Desktop: Test",
+                "iPhone: Build Simulator (No Signing)"
+            ],
+            "problemMatcher": [],
+            "group": "test"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "iphoneName",
+            "type": "promptString",
+            "description": "iPhone name shown by the List Devices task",
+            "default": "Your iPhone"
+        },
+        {
+            "id": "developmentTeam",
+            "type": "promptString",
+            "description": "Ten-character Personal Team ID; leave empty to detect a local certificate",
+            "default": ""
+        },
+        {
+            "id": "bundleIdentifier",
+            "type": "promptString",
+            "description": "Unique reverse-DNS bundle identifier",
+            "default": "com.example.spectral"
+        }
+    ]
+}

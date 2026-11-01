@@ -1,0 +1,50 @@
+- !<AssetImportMetadata/2ecc2bd4-5d3e-5611-a425-2536a4d819f0>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> a93b4e08-a7b0-5e10-b0c8-aba61c14b16f
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> a93b4e08-a7b0-5e10-b0c8-aba61c14b16f
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> f934e976-df60-4ef5-8db2-59589a9be686
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/f934e976-df60-4ef5-8db2-59589a9be686>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  ComponentUid: 39b79a8f-8da2-4664-b10c-02f3b3c36700
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    action: false
+    feedbackLabel: false
+    lab: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - lab: !<MappingBased.AssignableType> 00000000-0000-0000-0000-000000000000
+      action: material
+      feedbackLabel: !<reference.Text> 00000000-0000-0000-0000-000000000000
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - // @input AssignableType lab
+    - '// @input string action = "material"'
+    - // @input Component.Text feedbackLabel

@@ -1,0 +1,13 @@
+{
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
+    "cmake.sourceDirectory": "${workspaceFolder}",
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "cmake.buildType": "Release",
+    "cmake.configureOnOpen": true,
+    "terminal.integrated.cwd": "${workspaceFolder}",
+    "files.exclude": {
+        "build": true,
+        "ios/PrismCamera/.build": true,
+        "ios/PrismCamera/.build-simulator": true
+    }
+}

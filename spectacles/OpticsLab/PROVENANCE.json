@@ -1,0 +1,12 @@
+{
+  "source": "https://github.com/Snapchat/Spectacles-Sample",
+  "tree": "6afd40c9eb7d90787d1eb5515519f5e13e3b9f12",
+  "template": "Spectacles Sync Kit",
+  "editorValidation": "not run; Lens Studio is not installed",
+  "packages": {
+    "LSTween.lspkg": "aeb4af88b698eb59468cbf2ee117f81b6269751cdba94c2e595d706adc9bf332",
+    "SpectaclesInteractionKit.lspkg": "9c536388b9da4dcd14b59d09f11b9a4391eb7a646c056d34e41980b2be932ac5",
+    "SpectaclesSyncKit.lspkg": "a3f3c6f3bf0201403fec4376cf1099a555f424512c7e4c21c37c4ee0db569055",
+    "SpectaclesUIKit.lspkg": "f042a82dc50fb79748a344cc2e1cb37aa05a7fef311b714ee245d083b1cc540b"
+  }
+}

@@ -1,0 +1,71 @@
+- !<AssetImportMetadata/211557f0-a4b7-59a1-af80-05189e79c82e>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> f0d1678f-eb69-500f-b341-e54a8fcc9aa0
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> f0d1678f-eb69-500f-b341-e54a8fcc9aa0
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> 121466e9-c9d4-4d97-97e9-a5ae0264dad5
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/121466e9-c9d4-4d97-97e9-a5ae0264dad5>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  ComponentUid: 9dd70f3a-5f27-436b-b275-d276ef98dd0d
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    crystalVisual: false
+    enableRoomQuery: false
+    glass: false
+    label: false
+    patchVisual: false
+    raysVisual: false
+    source: false
+    stableGlassVisibility: false
+    surfacePlacement: false
+    worldMeshVisual: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - glass: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      source: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      crystalVisual: !<reference.RenderMeshVisual> 00000000-0000-0000-0000-000000000000
+      raysVisual: !<reference.RenderMeshVisual> 00000000-0000-0000-0000-000000000000
+      patchVisual: !<reference.RenderMeshVisual> 00000000-0000-0000-0000-000000000000
+      label: !<reference.Text> 00000000-0000-0000-0000-000000000000
+      enableRoomQuery: true
+      stableGlassVisibility: true
+      surfacePlacement: false
+      worldMeshVisual: !<reference.RenderMeshVisual> 00000000-0000-0000-0000-000000000000
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - // @input SceneObject glass
+    - // @input SceneObject source
+    - // @input Component.RenderMeshVisual crystalVisual
+    - // @input Component.RenderMeshVisual raysVisual
+    - // @input Component.RenderMeshVisual patchVisual
+    - // @input Component.Text label
+    - // @input bool enableRoomQuery = true
+    - // @input bool stableGlassVisibility
+    - // @input bool surfacePlacement
+    - // @input Component.RenderMeshVisual worldMeshVisual
